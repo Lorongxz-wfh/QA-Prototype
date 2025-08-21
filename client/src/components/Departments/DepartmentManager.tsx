@@ -1,192 +1,158 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../../api/axios";
-import Breadcrumbs from "../Layout/Breadcrumbs";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 
-interface Department {
+type Department = {
   department_id: number;
   department: string;
-  is_deleted: number;
-}
+  description?: string | null;
+  image?: string | null;
+};
+
+const API_BASE =
+  (import.meta as any)?.env?.VITE_API_BASE_URL?.replace(/\/+$/, "") ||
+  "http://localhost:8000";
+const STORAGE_BASE = `${API_BASE}/storage/`;
+
+const getDepartmentImage = (d: Department): string | null => {
+  if (d.image) {
+    return `${STORAGE_BASE}${d.image.replace(/^\/+/, "")}`;
+  }
+  return null;
+};
 
 const DepartmentManager: React.FC = () => {
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [newDept, setNewDept] = useState("");
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editingName, setEditingName] = useState("");
-  const [expandedId, setExpandedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-
-  const fetchDepartments = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get("/departments");
-      setDepartments(res.data);
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to fetch departments!");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     fetchDepartments();
   }, []);
 
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newDept.trim()) return;
+  const fetchDepartments = async () => {
+    setLoading(true);
     try {
-      const res = await api.post("/departments", { department: newDept });
-      setDepartments([...departments, res.data]);
-      setNewDept("");
-      toast.success("Department added successfully!");
+      const res = await api.get("/departments");
+      setDepartments(res.data || []);
     } catch (error) {
-      console.error(error);
-      toast.error("Failed to add department!");
-    }
-  };
-
-  const handleEdit = (dept: Department) => {
-    setEditingId(dept.department_id);
-    setEditingName(dept.department);
-    setExpandedId(dept.department_id);
-  };
-
-  const handleSave = async (id: number) => {
-    try {
-      await api.put(`/departments/${id}`, { department: editingName });
-      setDepartments(
-        departments.map((d) =>
-          d.department_id === id ? { ...d, department: editingName } : d
-        )
-      );
-      setEditingId(null);
-      setEditingName("");
-      toast.success("Department updated successfully!");
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to update department!");
+      console.error("Error fetching departments:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm("Are you sure you want to delete this department?"))
-      return;
+    if (!window.confirm("Delete this department?")) return;
     try {
       await api.delete(`/departments/${id}`);
-      setDepartments(departments.filter((d) => d.department_id !== id));
-      toast.success("Department deleted successfully!");
+      setDepartments((prev) => prev.filter((d) => d.department_id !== id));
     } catch (error) {
-      console.error(error);
-      toast.error("Failed to delete department!");
+      console.error("Error deleting department:", error);
     }
   };
 
-  const toggleExpand = (id: number) => {
-    setExpandedId(expandedId === id ? null : id);
-  };
-
   return (
-    <div className="min-h-screen p-4 bg-gradient-to-br from-gray-50 to-gray-200">
-      <Breadcrumbs />
-      <h2 className="text-xl font-bold mb-4">Department Manager</h2>
-
-      {/* Toast Container */}
-      <ToastContainer position="top-right" autoClose={3000} />
-
-      {/* Add Department Form */}
-      <form onSubmit={handleAdd} className="flex gap-2 mb-6">
-        <input
-          type="text"
-          value={newDept}
-          onChange={(e) => setNewDept(e.target.value)}
-          placeholder="Enter new department"
-          className="border border-gray-300 p-2 rounded flex-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
-        <button
-          type="submit"
-          className="bg-blue-400 hover:bg-blue-500 text-white px-4 py-2 rounded transition"
+    <div className="min-h-screen p-6 bg-gradient-to-br from-gray-50 to-gray-100">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-2xl font-bold text-gray-800">Department Manager</h1>
+        <Link
+          to="/departments/add"
+          className="inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-white shadow
+                     bg-sky-600 hover:bg-sky-700 active:bg-sky-800 transition"
         >
-          Add
-        </button>
-      </form>
+          <FaPlus />
+          <span>Add Department</span>
+        </Link>
+      </div>
 
-      {/* Departments List / Loading */}
-      {loading ? (
-        <div className="flex justify-center items-center py-10">
-          <div className="w-12 h-12 border-4 border-blue-400 border-dashed rounded-full animate-spin"></div>
-        </div>
-      ) : departments.length > 0 ? (
-        <div className="flex flex-col gap-4">
-          {departments.map((dept) => (
+      {/* Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {loading ? (
+          // Show 6 skeleton cards while loading
+          [...Array(6)].map((_, i) => (
             <div
-              key={dept.department_id}
-              className="bg-white/80 p-4 rounded-lg shadow-lg backdrop-blur-sm transition"
+              key={i}
+              className="bg-white rounded-2xl shadow-md overflow-hidden animate-pulse"
             >
-              <div
-                className="flex justify-between items-center cursor-pointer"
-                onClick={() => toggleExpand(dept.department_id)}
-              >
-                <h3 className="font-semibold text-lg">{dept.department}</h3>
-                <span className="text-gray-500">
-                  {expandedId === dept.department_id ? "▲" : "▼"}
-                </span>
-              </div>
-
-              {expandedId === dept.department_id && (
-                <div className="mt-3 flex flex-col gap-2">
-                  {editingId === dept.department_id ? (
-                    <>
-                      <input
-                        type="text"
-                        value={editingName}
-                        onChange={(e) => setEditingName(e.target.value)}
-                        className="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-                      />
-                      <div className="flex gap-2 mt-2">
-                        <button
-                          onClick={() => handleSave(dept.department_id)}
-                          className="bg-blue-400 hover:bg-blue-500 text-white px-3 py-1 rounded transition flex-1"
-                        >
-                          Save
-                        </button>
-                        <button
-                          onClick={() => setEditingId(null)}
-                          className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-1 rounded transition flex-1"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="flex gap-2 mt-2">
-                      <button
-                        onClick={() => handleEdit(dept)}
-                        className="bg-indigo-400 hover:bg-indigo-500 text-white px-3 py-1 rounded transition flex-1"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(dept.department_id)}
-                        className="bg-red-400 hover:bg-red-500 text-white px-3 py-1 rounded transition flex-1"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  )}
+              <div className="h-40 w-full bg-gray-200" />
+              <div className="p-4 space-y-2">
+                <div className="h-6 bg-gray-200 rounded w-3/4" />
+                <div className="h-4 bg-gray-200 rounded w-full" />
+                <div className="h-4 bg-gray-200 rounded w-5/6" />
+                <div className="flex justify-end gap-3 mt-2">
+                  <div className="h-8 w-16 bg-gray-200 rounded" />
+                  <div className="h-8 w-16 bg-gray-200 rounded" />
                 </div>
-              )}
+              </div>
             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="p-4 text-center text-gray-500 bg-gray-50 rounded shadow">
-          No departments available.
-        </div>
-      )}
+          ))
+        ) : departments.length === 0 ? (
+          // Empty state
+          <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-gray-500 bg-white col-span-full">
+            No departments yet. Click{" "}
+            <span className="font-medium">Add Department</span> to create one.
+          </div>
+        ) : (
+          // Actual department cards
+          departments.map((department) => {
+            const img = getDepartmentImage(department);
+            return (
+              <div
+                key={department.department_id}
+                className="group bg-white rounded-2xl shadow-md hover:shadow-lg transition overflow-hidden"
+              >
+                {img ? (
+                  <img
+                    src={img}
+                    alt={department.department}
+                    className="h-40 w-full object-cover"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).style.display =
+                        "none";
+                    }}
+                  />
+                ) : (
+                  <div className="h-40 w-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-400 text-sm">
+                    No Image
+                  </div>
+                )}
+
+                <div className="p-4">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-1">
+                    {department.department}
+                  </h2>
+                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                    {department.description?.trim() ||
+                      "No description available... For now..."}
+                  </p>
+
+                  <div className="flex justify-end gap-3">
+                    <Link
+                      to={`/departments/edit/${department.department_id}`}
+                      className="inline-flex items-center gap-1 text-sm px-3 py-1.5 rounded-xl shadow
+                                   bg-indigo-500 text-white hover:bg-indigo-600 active:bg-indigo-700 transition"
+                    >
+                      <FaEdit />
+                      Edit
+                    </Link>
+
+                    <button
+                      onClick={() => handleDelete(department.department_id)}
+                      className="inline-flex items-center gap-1 text-sm px-3 py-1.5 rounded-xl shadow
+                                   bg-rose-500 text-white hover:bg-rose-600 active:bg-rose-700 transition"
+                    >
+                      <FaTrash />
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
     </div>
   );
 };

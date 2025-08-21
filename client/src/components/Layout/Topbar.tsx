@@ -31,7 +31,7 @@ const TopBar: React.FC<TopBarProps> = ({ actions }) => {
             className="flex flex-col lg:flex-row items-center gap-1 lg:gap-2 px-3 py-2.5 rounded-lg hover:bg-gray-100 transition min-w-[120px] cursor-pointer"
           >
             <FaUserCircle className="text-xl text-gray-700" />
-            <span className="font-medium text-gray-700 truncate">John Doe</span>
+            <span className="font-medium text-gray-700 truncate">Lorongxz</span>
           </button>
 
           {profileOpen && (

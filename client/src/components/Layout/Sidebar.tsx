@@ -38,10 +38,14 @@ const Sidebar: React.FC = () => {
           } lg:translate-x-0
         `}
       >
-        {/* Logo */}
-        <div className="h-[89px] flex justify-center items-center border-b border-gray-200">
+        {/* Logo and Name clickable */}
+        <NavLink
+          to="/"
+          className="h-[89px] flex justify-center items-center border-b border-gray-200 gap-2 transition-colors"
+        >
+          <span className="text-3xl">📁</span> {/* Temporary logo */}
           <h1 className="text-2xl font-bold text-gray-800">FilDAS</h1>
-        </div>
+        </NavLink>
 
         {/* Links */}
         <nav className="flex-1 p-4 overflow-y-auto">

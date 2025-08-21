@@ -19,7 +19,7 @@ const FileManager: React.FC = () => {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [currentFolder, setCurrentFolder] = useState<Department | null>(null);
   const [folderItems, setFolderItems] = useState<FolderItem[]>([]);
-  const [loading, setLoading] = useState(false); // added loading state
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchDepartments = async () => {
@@ -49,8 +49,17 @@ const FileManager: React.FC = () => {
 
   return (
     <div className="min-h-screen p-4 bg-gradient-to-br from-gray-50 to-gray-200">
-      <Breadcrumbs />
-      <h2 className="text-2xl font-bold mb-6">File Manager</h2>
+      <Breadcrumbs currentPage="File Manager" />
+      <h2 className="text-2xl font-bold mb-4">File Manager</h2>
+
+      {/* Search bar */}
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Search files or folders..."
+          className="w-full sm:w-1/3 p-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
+      </div>
 
       {currentFolder ? (
         <FolderView items={folderItems} onBack={goBack} />
