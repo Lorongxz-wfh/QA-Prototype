@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Breadcrumbs from "../Layout/Breadcrumbs";
 import api from "../../api/axios";
+import { FaUsers, FaBuilding, FaFolder } from "react-icons/fa";
 
 interface User {
   user_id: number;
@@ -30,6 +31,24 @@ const Dashboard: React.FC = () => {
     fetchData();
   }, []);
 
+  const stats = [
+    {
+      title: "Total Users",
+      value: users.length,
+      icon: <FaUsers className="text-3xl text-blue-500" />,
+    },
+    {
+      title: "Departments",
+      value: departments.length,
+      icon: <FaBuilding className="text-3xl text-green-500" />,
+    },
+    {
+      title: "Files",
+      value: 0,
+      icon: <FaFolder className="text-3xl text-purple-500" />,
+    }, // placeholder
+  ];
+
   return (
     <div className="min-h-screen p-4 sm:p-6 bg-gradient-to-br from-gray-50 to-gray-200">
       {/* Breadcrumbs */}
@@ -40,25 +59,25 @@ const Dashboard: React.FC = () => {
 
       {/* Stats cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        <div className="bg-white/80 p-4 sm:p-6 rounded-lg shadow-lg text-center backdrop-blur-sm transition hover:shadow-xl">
-          <h3 className="font-semibold mb-2 text-lg sm:text-xl">Total Users</h3>
-          <p className="text-2xl sm:text-3xl font-bold text-gray-900">{users.length}</p>
-        </div>
-        <div className="bg-white/80 p-4 sm:p-6 rounded-lg shadow-lg text-center backdrop-blur-sm transition hover:shadow-xl">
-          <h3 className="font-semibold mb-2 text-lg sm:text-xl">Departments</h3>
-          <p className="text-2xl sm:text-3xl font-bold text-gray-900">
-            {departments.length}
-          </p>
-        </div>
-        <div className="bg-white/80 p-4 sm:p-6 rounded-lg shadow-lg text-center backdrop-blur-sm transition hover:shadow-xl">
-          <h3 className="font-semibold mb-2 text-lg sm:text-xl">Files</h3>
-          <p className="text-2xl sm:text-3xl font-bold text-gray-900">0</p>
-        </div>
+        {stats.map((stat) => (
+          <div
+            key={stat.title}
+            className="bg-white/80 p-4 sm:p-6 rounded-lg shadow-lg text-center backdrop-blur-sm transition hover:shadow-xl flex flex-col items-center justify-center"
+          >
+            <div className="mb-2">{stat.icon}</div>
+            <h3 className="font-semibold mb-1 text-lg sm:text-xl">
+              {stat.title}
+            </h3>
+            <p className="text-2xl sm:text-3xl font-bold text-gray-900">
+              {stat.value}
+            </p>
+          </div>
+        ))}
       </div>
 
-      {/* Optional: future graphs or additional cards */}
+      {/* Optional: Future graphs or additional cards */}
       <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        {/* Placeholder cards for future expansion */}
+        {/* Add future charts or stats here */}
       </div>
     </div>
   );
